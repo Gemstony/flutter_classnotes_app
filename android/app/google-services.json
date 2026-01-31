@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "151034945518",
+    "project_id": "classnotes-f2b8d",
+    "storage_bucket": "classnotes-f2b8d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151034945518:android:68d5edaff124cf261fb8ff",
+        "android_client_info": {
+          "package_name": "tz.co.nyumbaplus.classnotes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDH9sRvQMgZLueaUNhi4ymMdJ1Um4YJ_KI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
