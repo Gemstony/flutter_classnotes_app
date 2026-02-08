@@ -1,7 +1,6 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../firebase_options.dart';
+import '../routes/app_routes.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -36,67 +35,74 @@ class _LoginViewState extends State<LoginView> {
         backgroundColor: const Color.fromARGB(255, 5, 114, 238),
       ),
 
-      body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        hintText: "Enter Email",
-                      ),
-                    ),
-                    TextField(
-                      controller: _password,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        hintText: "Enter Password",
-                      ),
-                    ),
-                    SizedBox(height: 20),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                hintText: "Enter Email",
+              ),
+            ),
+            TextField(
+              controller: _password,
+              enableSuggestions: false,
+              autocorrect: false,
+              obscureText: true,
+              decoration: const InputDecoration(
+                hintText: "Enter Password",
+              ),
+            ),
+            SizedBox(height: 20),
 
-                    TextButton(
-                      onPressed: () async {
-                        //i need to initialize firebase first
-                        await Firebase.initializeApp(
-                          options: DefaultFirebaseOptions.currentPlatform,
-                        );
-                        final email = _email.text;
-                        final password = _password.text;
-                        try {
-                          final userCredential = await FirebaseAuth.instance
-                              .signInWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
-                          print(userCredential);
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'user-not-found') {
-                            print("User not found");
-                          } else {
-                            print("Something went wrong: ${e.code}");
-                          }
-                        }
-                      },
-                      child: Text("Login"),
+            TextButton(
+              onPressed: () async {
+                final email = _email.text;
+                final password = _password.text;
+                try {
+                  await FirebaseAuth.instance.signInWithEmailAndPassword(
+                    email: email,
+                    password: password,
+                  );
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Login successful!")),
+                  );
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRoutes.home,
+                    (route) => false,
+                  );
+                } on FirebaseAuthException catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Login failed: ${e.message}"),
                     ),
-                  ],
+                  );
+                }
+              },
+              child: Text("Login"),
+            ),
+
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/register/',
+                  (route) => false,
+                );
+              },
+              child: Text(
+                "Don't have an account? Register here",
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: Colors.blue,
                 ),
-              );
-            default:
-              return const Text("Loading...");
-          }
-        },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
