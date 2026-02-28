@@ -1,15 +1,5 @@
-import 'dart:developer' as devtools;
-
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:classnotes/firebase_options.dart';
-import 'package:classnotes/routes/route_generator.dart';
-import 'package:classnotes/view/notes_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'login_view.dart';
-import 'register_view.dart';
 import '../routes/app_routes.dart';
 
 enum MenuAction { logout }
