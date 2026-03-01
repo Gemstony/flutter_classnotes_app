@@ -1,6 +1,7 @@
 import 'package:classnotes/routes/app_routes.dart';
+import 'package:classnotes/services/auth/auth_exceptions.dart';
+import 'package:classnotes/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -42,18 +43,14 @@ class _RegisterViewState extends State<RegisterView> {
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                hintText: "Enter Email",
-              ),
+              decoration: const InputDecoration(hintText: "Enter Email"),
             ),
             TextField(
               controller: _password,
               enableSuggestions: false,
               autocorrect: false,
               obscureText: true,
-              decoration: const InputDecoration(
-                hintText: "Enter Password",
-              ),
+              decoration: const InputDecoration(hintText: "Enter Password"),
             ),
             SizedBox(height: 20),
 
@@ -63,35 +60,38 @@ class _RegisterViewState extends State<RegisterView> {
                 final password = _password.text;
 
                 try {
-                  await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                  await AuthService.firebase().createUser(
                     email: email,
                     password: password,
                   );
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("User registered successfully"),
-                    ),
-                  );
-                } on FirebaseAuthException catch (e) {
-                  if (!context.mounted) return;
-                  if (e.code == 'weak-password') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Weak password")),
-                    );
-                  } else if (e.code == 'invalid-email') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Invalid email")),
-                    );
-                  } else if (e.code == 'email-already-in-use') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Email already in use")),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(e.message ?? "Register failed")),
-                    );
+                  final user = AuthService.firebase().currentUser;
+                  if (user != null) {
+                    await user.sendEmailVerification();
                   }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("User registered successfully")),
+                  );
+                } on weakPasswordException {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Weak password")));
+                } on emailAlreadyInUseException {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Email already in use")),
+                  );
+                } on invalidEmailException {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Invalid email")));
+                } on genericAuthException {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Failed to register")));
                 }
               },
               child: Text("Register"),
@@ -99,10 +99,9 @@ class _RegisterViewState extends State<RegisterView> {
 
             TextButton(
               onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.login,
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
               },
               child: Text(
                 "Already registered? Login here",

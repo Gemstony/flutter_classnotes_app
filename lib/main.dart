@@ -1,14 +1,15 @@
-import 'package:classnotes/firebase_options.dart';
 import 'package:classnotes/routes/route_generator.dart';
-import 'package:classnotes/view/notes_view.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:classnotes/services/auth/auth_exceptions.dart';
+import 'package:classnotes/services/auth/auth_service.dart';
+import 'package:classnotes/view/auth/notes_view.dart';
+import 'package:classnotes/view/auth/verify_email_view.dart';
+import 'package:classnotes/view/auth/notes_view.dart';
 import 'package:flutter/material.dart';
-import 'view/login_view.dart';
+import 'view/auth/login_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AuthService.firebase().initialize();
   runApp(const MyApp());
 }
 
@@ -46,12 +47,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.firebase().currentUser;
     if (user != null) {
-      if (user.emailVerified) {
-        if (mounted) setState(() => _body = const notesView());
+      if (user.isEmailVerified) {
+        if (mounted) setState(() => _body = const NotesView());
       } else {
-        if (mounted) setState(() => _body = const verifyEmail());
+        if (mounted) setState(() => _body = const VerifyEmail());
       }
     } else {
       if (mounted) setState(() => _body = const LoginView());
@@ -62,54 +63,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _body ?? const Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class verifyEmail extends StatefulWidget {
-  const verifyEmail({super.key});
-
-  @override
-  State<verifyEmail> createState() => _verifyEmailState();
-}
-
-class _verifyEmailState extends State<verifyEmail> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text("Verify your email address"),
-        SizedBox(height: 20),
-        TextButton(
-          onPressed: () async {
-            final user = FirebaseAuth.instance.currentUser;
-
-            if (user == null) return;
-
-            try {
-              await user.sendEmailVerification();
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Verification email sent successfully."),
-                ),
-              );
-            } on FirebaseAuthException catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    e.message ?? "Failed to send verification email.",
-                  ),
-                ),
-              );
-            }
-          },
-          child: const Text(
-            "Send Verification Email",
-            style: TextStyle(color: Colors.blue),
-          ),
-        ),
-      ],
     );
   }
 }

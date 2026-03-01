@@ -1,17 +1,17 @@
+import 'package:classnotes/enum/menu_actions.dart';
+import 'package:classnotes/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../routes/app_routes.dart';
 
-enum MenuAction { logout }
+import '../../routes/app_routes.dart';
 
-class notesView extends StatefulWidget {
-  const notesView({super.key});
+class NotesView extends StatefulWidget {
+  const NotesView({super.key});
 
   @override
-  State<notesView> createState() => _notesViewState();
+  State<NotesView> createState() => _NotesViewState();
 }
 
-class _notesViewState extends State<notesView> {
+class _NotesViewState extends State<NotesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,13 +23,15 @@ class _notesViewState extends State<notesView> {
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
-                  final shoulLogOut = await ShowlogOutDialog(context);
-                  if (shoulLogOut) {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.login,
-                      (route) => false,
-                    );
+                  final shouldLogOut = await showLogOutDialog(context);
+                  if (shouldLogOut) {
+                    await AuthService.firebase().logout();
+                    if (mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.login,
+                        (route) => false,
+                      );
+                    }
                   }
                   break;
               }
@@ -50,7 +52,7 @@ class _notesViewState extends State<notesView> {
   }
 }
 
-Future<bool> ShowlogOutDialog(BuildContext context) {
+Future<bool> showLogOutDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (context) {

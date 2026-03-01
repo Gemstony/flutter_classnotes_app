@@ -1,6 +1,7 @@
+import 'package:classnotes/services/auth/auth_exceptions.dart';
+import 'package:classnotes/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../routes/app_routes.dart';
+import '../../routes/app_routes.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -42,18 +43,14 @@ class _LoginViewState extends State<LoginView> {
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                hintText: "Enter Email",
-              ),
+              decoration: const InputDecoration(hintText: "Enter Email"),
             ),
             TextField(
               controller: _password,
               enableSuggestions: false,
               autocorrect: false,
               obscureText: true,
-              decoration: const InputDecoration(
-                hintText: "Enter Password",
-              ),
+              decoration: const InputDecoration(hintText: "Enter Password"),
             ),
             SizedBox(height: 20),
 
@@ -62,24 +59,28 @@ class _LoginViewState extends State<LoginView> {
                 final email = _email.text;
                 final password = _password.text;
                 try {
-                  await FirebaseAuth.instance.signInWithEmailAndPassword(
+                  await AuthService.firebase().logIn(
                     email: email,
                     password: password,
                   );
                   if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Login successful!")));
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+                } on userNotFoundException {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("User not found!")));
+                } on wrongPasswordException {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Wrong password!")));
+                } on genericAuthException {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Login successful!")),
-                  );
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.home,
-                    (route) => false,
-                  );
-                } on FirebaseAuthException catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Login failed: ${e.message}"),
-                    ),
+                    SnackBar(content: Text("Authentication error!")),
                   );
                 }
               },
@@ -88,10 +89,9 @@ class _LoginViewState extends State<LoginView> {
 
             TextButton(
               onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/register/',
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/register/', (route) => false);
               },
               child: Text(
                 "Don't have an account? Register here",

@@ -1,3 +1,4 @@
+import 'package:classnotes/firebase_options.dart';
 import 'package:classnotes/services/auth/auth_user.dart';
 import 'package:classnotes/services/auth/auth_provider.dart';
 import 'package:classnotes/services/auth/auth_exceptions.dart';
@@ -66,7 +67,7 @@ class FirebaseAuthProvider implements AuthProvider {
       if (user != null) {
         return user;
       } else {
-        throw userNotLoggedInException();
+        throw userNotFoundException();
       }
     } on FirebaseException catch (e) {
       if (e.code == 'user-not-found') {
@@ -82,11 +83,10 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
-  Future<AuthUser> logout() async {
+  Future<void> logout() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await FirebaseAuth.instance.signOut();
-      return currentUser!;
     } else {
       throw userNotLoggedInException();
     }
@@ -101,5 +101,12 @@ class FirebaseAuthProvider implements AuthProvider {
     } else {
       throw userNotLoggedInException();
     }
+  }
+
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
 }
