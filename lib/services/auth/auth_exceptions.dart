@@ -6,7 +6,9 @@ class wrongPasswordException implements Exception {}
 //Register Exceptions
 
 class weakPasswordException implements Exception {}
+
 class emailAlreadyInUseException implements Exception {}
+
 class invalidEmailException implements Exception {}
 
 //Generic Exceptions
